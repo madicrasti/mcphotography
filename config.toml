@@ -1,0 +1,16 @@
+project_id = "mcphotography"
+
+[functions.public]
+verify_jwt = false
+
+[functions.admin]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.google-oauth]
+verify_jwt = false
+
+[functions.cron]
+verify_jwt = false
