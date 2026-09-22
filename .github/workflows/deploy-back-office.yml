@@ -1,0 +1,31 @@
+# Deploys the booking back office (database + functions) to Supabase whenever the supabase/ folder changes.
+# One-time: add these in GitHub → Settings → Secrets and variables → Actions:
+#   SUPABASE_ACCESS_TOKEN  (Supabase → Account → Access tokens)
+#   SUPABASE_PROJECT_REF   (the id in your project URL, e.g. abcdefghijklmnop)
+#   SUPABASE_DB_PASSWORD   (the database password you chose when creating the project)
+name: Deploy back office
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['supabase/**', 'assets/core.js', 'assets/engine.js']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the same booking rules as the website
+        run: cp assets/core.js assets/engine.js supabase/functions/_shared/
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Link project
+        run: supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD"
+      - name: Update database
+        run: supabase db push -p "$SUPABASE_DB_PASSWORD"
+      - name: Deploy functions
+        run: supabase functions deploy --project-ref "$PROJECT_REF" --no-verify-jwt
